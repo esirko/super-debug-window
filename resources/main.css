@@ -1,0 +1,82 @@
+body {
+	background-color: transparent;
+}
+
+.color-list {
+	list-style: none;
+	padding: 0;
+}
+
+.color-entry {
+	width: 100%;
+	display: flex;
+	margin-bottom: 0.4em;
+	border: 1px solid var(--vscode-input-border);
+}
+
+.color-preview {
+	width: 2em;
+	height: 2em;
+}
+
+.color-preview:hover {
+	outline: inset white;
+}
+
+.color-input {
+	display: block;
+	flex: 1;
+	width: 100%;
+	color: var(--vscode-input-foreground);
+	background-color: var(--vscode-input-background);
+	border: none;
+	padding: 0 0.6em;
+}
+
+.add-color-button {
+	display: block;
+	border: none;
+	margin: 0 auto;
+}
+
+
+/* ---- table ---- */
+.table {
+	border-collapse: collapse;
+}
+
+.table,
+.table th,
+.table td {
+	border: 1px solid #444;
+}
+
+.table th,
+.table td {
+	padding: 0.2rem;
+}
+
+.table th {
+	position: relative;
+}
+
+.resizer {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 5px;
+	cursor: col-resize;
+	user-select: none;
+}
+
+.resizer:hover,
+.resizing {
+	border-right: 2px solid blue;
+}
+
+.resizable {
+	border: 1px solid gray;
+	height: 100px;
+	width: 100px;
+	position: relative;
+}

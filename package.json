@@ -12,12 +12,51 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "super-debug-panel",
+          "title": "Super debug window",
+          "icon": "resources/number.svg"
+        }
+      ]
+    },
+    "views": {
+			"super-debug-panel": [
+				{
+					"type": "webview",
+					"id": "calicoColors.colorsView",
+					"name": "Super debug window (Panel name)",
+          "contextualTitle": "Super debug window (CT)"
+				}
+			]
+		},
     "commands": [
       {
         "command": "super-debug-window.helloWorld",
         "title": "Hello World"
-      }
-    ]
+      },
+      {
+				"command": "calicoColors.addColor",
+				"category": "Calico Colors",
+				"title": "Add Color"
+			},
+			{
+				"command": "calicoColors.clearColors",
+				"category": "Calico Colors",
+				"title": "Clear Colors",
+				"icon": "$(clear-all)"
+			}
+    ],
+		"menus": {
+			"view/title": [
+				{
+					"command": "calicoColors.clearColors",
+					"group": "navigation",
+					"when": "view == calicoColors.colorsView"
+				}
+			]
+		}
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
