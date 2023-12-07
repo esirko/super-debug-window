@@ -42,31 +42,67 @@ export function deactivate() { }
 
 function onDAPRequest(provider: vscode.WebviewViewProvider, message: any) {
 	//console.log("> ", message); //message.type, message.command)
-	console.log(`> ${JSON.stringify(message)}`);
+	//console.log(`> ${JSON.stringify(message)}`);
+	requestMessages.push(message);
 }
 
-function onDAPResponse(provider: vscode.WebviewViewProvider, message: any) {
-	if (message.type === 'response' && message.command === 'stackTrace') {
-		message.body.stackFrames.forEach((frame: any) => {
+function onDAPResponse(provider: vscode.WebviewViewProvider, responseMessage: any) {
+	if (responseMessage.type === 'response') {
+		// Find the request message corresponding to this response.
+		const requestMessage = requestMessages.find(msg => msg.seq === responseMessage.request_seq);
+		if (requestMessage) {
+			requestMessages.splice(requestMessages.indexOf(requestMessage), 1);
+			// switch statement for different types of responses
+			switch (responseMessage.command) {
+				case 'stackTrace':
+					console.log(`>>> Received Stack Trace: {"request":${JSON.stringify(requestMessage)},"response":${JSON.stringify(responseMessage)}}`);
+					(provider as SuperCallStackProvider).updateCallStack(requestMessage, responseMessage);
+					break;
+				case 'threads':
+					console.log(`>>> Received Threads: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					break;
+				case 'scopes':
+					console.log(`>>> Received Scopes: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					break;
+				case 'variables':
+					console.log(`>>> Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					break;
+				default:
+					console.log(`>>> Received Unhandled: ${responseMessage.command}`);
+					break;
+			}
+		} else {
+			console.error(`>>> Received response with unknown request ID: ${responseMessage.request_seq}`);
+		}
+	}
+
+	/*
+	if (responseMessage.type === 'response' && responseMessage.command === 'stackTrace') {
+		responseMessage.body.stackFrames.forEach((frame: any) => {
 		});
 
-		(provider as SuperCallStackProvider).updateCallStack(message.body.stackFrames);
+		(provider as SuperCallStackProvider).updateCallStack(responseMessage.body.stackFrames);
 	}
 
 	//console.log("< ", message); //.type, message.command, message.body)
-	console.log(`< ${JSON.stringify(message)}`);
+	console.log(`< ${JSON.stringify(responseMessage)}`);
+	*/
 }
 
+// Global array of messages
+const requestMessages: any[] = [];
 
 class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'super-debug-window.callStack';
-
 	private _view?: vscode.WebviewView;
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
 	) { }
+
+	private request_seq_0 = 0;
+	private cachedResponses: any[] = [];
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -112,10 +148,29 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 		*/
 	}
 
-	public updateCallStack(stackFrames: any) {
+	public updateCallStack(request: any, response: any) {
 		if (this._view) {
 			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-			this._view.webview.postMessage({ type: 'updateCallStack', value: stackFrames });
+
+			// Here's the strategy to handle out-of-order call stack responses, based on my guesses about how the DAP works:
+			// If startFrame == 0, then we are at the top of the call stack, so clear the previous call stack first. 
+			// 		Keep track of the request_seq and call it request_seq_0.
+			// 		If there are any entries in cachedResponses, take any that have their request_seq greater than request_seq_0 and re-apply them to the new call stack. Clear cachedResponses.
+			// If startFrame > 0 and request_seq > request_seq_0, append to the previous call stack. Pay attention to the indices.
+			// 		Keep track of the request_seq, and the stackFrames, and append them to an array cachedResponses.
+			if (request.arguments.startFrame === 0) {
+				this._view.webview.postMessage({ type: 'updateCallStack', clear: true, stackFrames: response.body.stackFrames });
+				this.request_seq_0 = request.seq;
+				for (let i = 0; i < this.cachedResponses.length; i++) {
+					if (this.cachedResponses[i].request_seq > this.request_seq_0) {
+						this._view.webview.postMessage({ type: 'updateCallStack', clear: false, stackFrames: this.cachedResponses[i].stackFrames });
+					}
+				}
+				this.cachedResponses = [];
+			} else if (request.seq > this.request_seq_0) {
+				this.cachedResponses.push({ request_seq: request.seq, stackFrames: response.body.stackFrames });
+				this._view.webview.postMessage({ type: 'updateCallStack', clear: false, stackFrames: response.body.stackFrames });
+			}
 		}
 	}
 

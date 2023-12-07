@@ -68,17 +68,19 @@
         switch (message.type) {
             case 'updateCallStack':
                 {
-                    updateTable(message.value);
+                    updateTable(message.clear, message.stackFrames);
                     break;
                 }
 
         }
     });
 
-    function updateTable(stack) {
+    function updateTable(clear, frames) {
         const tbody = document.querySelector('#resizeMe tbody');
-        tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
-        for (const frame of stack) {
+        if (clear) {
+            tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
+        }
+        for (const frame of frames) {
             //const table = document.querySelector('#resizeMe');
             const newrow = document.createElement('tr');
             const newcell = document.createElement('td');
