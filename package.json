@@ -15,19 +15,32 @@
     "viewsContainers": {
       "panel": [
         {
-          "id": "super-debug-panel",
-          "title": "Super debug window",
+          "id": "super-callstack-panel",
+          "title": "Super call stack",
+          "icon": "resources/number.svg"
+        },
+        {
+          "id": "super-variables-panel",
+          "title": "Super variables",
           "icon": "resources/number.svg"
         }
       ]
     },
     "views": {
-			"super-debug-panel": [
+			"super-callstack-panel": [
 				{
 					"type": "webview",
 					"id": "super-debug-window.callStack",
-					"name": "Super debug window (Panel name)",
-          "contextualTitle": "Super debug window (CT)"
+					"name": "Super call stack 2",
+          "contextualTitle": "Super call stack 3"
+				}
+			],
+      "super-variables-panel": [
+				{
+					"type": "webview",
+					"id": "super-debug-window.variables",
+					"name": "Super variables 2",
+          "contextualTitle": "Super variables 3"
 				}
 			]
 		},
