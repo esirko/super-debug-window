@@ -14,8 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('super-debug-window is now active!');
 	vscode.window.showInformationMessage('Super Debug Window is now active!');
 
-	const provider = new SuperCallStackProvider(context.extensionUri);
-	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, provider));
+	const superCallStackProvider = new SuperCallStackProvider(context.extensionUri);
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider));
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
 		vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
 		console.log('Debug session started: ', session.name);
@@ -30,8 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.debug.registerDebugAdapterTrackerFactory('*', {
 		createDebugAdapterTracker(session: vscode.DebugSession) {
 			return {
-				onWillReceiveMessage: m => onDAPRequest(provider, m),
-				onDidSendMessage: m => onDAPResponse(provider, m)
+				onWillReceiveMessage: m => onDAPRequest(superCallStackProvider, m),
+				onDidSendMessage: m => onDAPResponse(superCallStackProvider, m)
 			};
 		}
 	});
@@ -40,17 +40,17 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
-function onDAPRequest(provider: SuperCallStackProvider, message: any) {
+function onDAPRequest(provider: vscode.WebviewViewProvider, message: any) {
 	//console.log("> ", message); //message.type, message.command)
 	console.log(`> ${JSON.stringify(message)}`);
 }
 
-function onDAPResponse(provider: SuperCallStackProvider, message: any) {
+function onDAPResponse(provider: vscode.WebviewViewProvider, message: any) {
 	if (message.type === 'response' && message.command === 'stackTrace') {
 		message.body.stackFrames.forEach((frame: any) => {
 		});
 
-		provider.updateCallStack(message.body.stackFrames);
+		(provider as SuperCallStackProvider).updateCallStack(message.body.stackFrames);
 	}
 
 	//console.log("< ", message); //.type, message.command, message.body)
