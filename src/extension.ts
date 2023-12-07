@@ -133,13 +133,15 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 			switch (data.command) {
 				case 'gotoSourceLine':
 					{
-						vscode.window.showInformationMessage('Go to source line ' + data.file + ' at line number ' + data.line);
+						//vscode.window.showInformationMessage('Go to source line ' + data.file + ' at line number ' + data.line);
 						// Open the file and go to the line number
 						vscode.workspace.openTextDocument(data.file).then(document => vscode.window.showTextDocument(document))
 						let editor = vscode.window.activeTextEditor;
-						let range = editor.document.lineAt(data.line-1).range;
-						editor.selection =  new vscode.Selection(range.start, range.end);
-						editor.revealRange(range);
+						if (editor) {
+							let range = editor.document.lineAt(data.line-1).range;
+							editor.selection =  new vscode.Selection(range.start, range.end);
+							editor.revealRange(range);
+						}
 						break;
 					}
 				default:
@@ -293,7 +295,7 @@ class SuperVariablesProvider implements vscode.WebviewViewProvider {
 			this._view.show?.(true);
 
 			let variables = response.body.variables;
-			variables.sort((a, b) => (a.name > b.name) ? 1 : -1);
+			variables.sort((a: { name: string }, b: { name: string }) => (a.name > b.name) ? 1 : -1);
 
 			this._view.webview.postMessage({ type: 'updateVariables', variables: response.body.variables });
 		}
