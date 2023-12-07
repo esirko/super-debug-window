@@ -13,9 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('super-debug-window is now active!');
 	vscode.window.showInformationMessage('Super Debug Window is now active!');
-
 	const superCallStackProvider = new SuperCallStackProvider(context.extensionUri);
-	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider));
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider, { webviewOptions: { retainContextWhenHidden: true } })); // TODO: retainContextWhenHidden isn't recommended because it's expensive. See https://code.visualstudio.com/api/extension-guides/webview#persistence
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
 		vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
 		console.log('Debug session started: ', session.name);
