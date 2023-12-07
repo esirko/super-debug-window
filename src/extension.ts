@@ -33,8 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.debug.registerDebugAdapterTrackerFactory('*', {
 		createDebugAdapterTracker(session: vscode.DebugSession) {
 			return {
-				onWillReceiveMessage: m => onDAPRequest(superCallStackProvider, m),
-				onDidSendMessage: m => onDAPResponse(superCallStackProvider, m)
+				onWillReceiveMessage: m => onDAPRequest(m),
+				onDidSendMessage: m => onDAPResponse(superCallStackProvider, superVariablesProvider, m)
 			};
 		}
 	});
@@ -43,13 +43,13 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
-function onDAPRequest(provider: vscode.WebviewViewProvider, message: any) {
+function onDAPRequest(message: any) {
 	console.log(">>> ", message); //message.type, message.command)
 	//console.log(`> ${JSON.stringify(message)}`);
 	requestMessages.push(message);
 }
 
-function onDAPResponse(provider: vscode.WebviewViewProvider, responseMessage: any) {
+function onDAPResponse(superCallStackProvider: SuperCallStackProvider, superVariablesProvider: SuperVariablesProvider, responseMessage: any) {
 	if (responseMessage.type === 'response') {
 		// Find the request message corresponding to this response.
 		const requestMessage = requestMessages.find(msg => msg.seq === responseMessage.request_seq);
@@ -59,17 +59,19 @@ function onDAPResponse(provider: vscode.WebviewViewProvider, responseMessage: an
 			switch (responseMessage.command) {
 				case 'stackTrace':
 					console.log(`>>> Received Stack Trace: {"request":${JSON.stringify(requestMessage)},"response":${JSON.stringify(responseMessage)}}`);
-					(provider as SuperCallStackProvider).updateCallStack(requestMessage, responseMessage);
+					superCallStackProvider.updateCallStack(requestMessage, responseMessage);
 					break;
 				case 'threads':
 					console.log(`>>> Received Threads: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
-					(provider as SuperCallStackProvider).updateThreads(requestMessage, responseMessage);
+					superCallStackProvider.updateThreads(requestMessage, responseMessage);
 					break;
 				case 'scopes':
 					console.log(`>>> Received Scopes: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					superVariablesProvider.updateScopes(requestMessage, responseMessage);
 					break;
 				case 'variables':
 					console.log(`>>> Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					superVariablesProvider.updateVariables(requestMessage, responseMessage);
 					break;
 				default:
 					console.log(`>>> Received Unhandled: ${responseMessage.command}`);
@@ -277,6 +279,26 @@ class SuperVariablesProvider implements vscode.WebviewViewProvider {
 			}
 		});
 	}
+
+	public updateScopes(request: any, response: any) {
+		if (this._view) {
+			this._view.show?.(true);
+
+			this._view.webview.postMessage({ type: 'updateScopes', threads: response.body});
+		}
+	}
+
+	public updateVariables(request: any, response: any) {
+		if (this._view) {
+			this._view.show?.(true);
+
+			let variables = response.body.variables;
+			variables.sort((a, b) => (a.name > b.name) ? 1 : -1);
+
+			this._view.webview.postMessage({ type: 'updateVariables', variables: response.body.variables });
+		}
+	}
+
 
 
 	private _getHtmlForWebview(webview: vscode.Webview) {

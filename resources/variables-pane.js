@@ -63,6 +63,17 @@
         switch (message.type) {
             case 'updateVariables':
                 {
+                    const tbody = document.querySelector('#resizeMe tbody');
+                    tbody.textContent = '';
+                    for (const variable of message.variables) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${variable.name}</td><td>${variable.value}</td><td>${variable.type}</td>`;
+                        tbody.appendChild(tr);
+                    }
+                    break;
+                }
+            case 'updateScopes':
+                {
                     break;
                 }
         }
