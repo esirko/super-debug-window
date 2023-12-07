@@ -61,58 +61,11 @@
     window.addEventListener('message', event => {
         const message = event.data; // The json data that the extension sent
         switch (message.type) {
-            case 'updateCallStack':
+            case 'updateVariables':
                 {
-                    updateTable(message.clear, message.stackFrames);
-                    const threadSelect = document.querySelector('#threads'); 
-                    threadSelect.value = message.threadId;
                     break;
                 }
-            case 'updateThreads':
-                {
-                    const threads = message.threads;
-                    const threadSelect = document.querySelector('#threads');
-                    threadSelect.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
-                    for (const thread of threads) {
-                        const newoption = document.createElement('option');
-                        newoption.textContent = thread.name;
-                        newoption.value = thread.id;
-                        threadSelect.appendChild(newoption);
-                    }
-                    break;
-                }
-
         }
     });
-
-    function updateTable(clear, frames) {
-        const tbody = document.querySelector('#resizeMe tbody');
-        if (clear) {
-            tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
-        }
-        for (const frame of frames) {
-            // Create a table row that you can double-click on to jump to the source code
-            const newrow = document.createElement('tr');
-            newrow.addEventListener('dblclick', () => {
-                vscode.postMessage({
-                    command: 'gotoSourceLine',
-                    file: frame.source.path,
-                    line: frame.line,
-                });
-            });
-            const newcell1 = document.createElement('td');
-            newcell1.textContent = frame.name;
-            const newcell2 = document.createElement('td');
-            newcell2.textContent = frame.source.name + ':' + frame.line;
-            newcell2.title = frame.source.path + ':' + frame.line;
-            if (frame.presentationHint === 'subtle') {
-                newcell1.classList.add("subtle-callstack-frame")
-                newcell2.classList.add("subtle-callstack-frame")
-            }
-            newrow.appendChild(newcell1);
-            newrow.appendChild(newcell2);
-            tbody.appendChild(newrow);
-        }
-    }
 
 }());

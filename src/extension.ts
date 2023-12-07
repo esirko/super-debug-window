@@ -13,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('super-debug-window is now active!');
 	vscode.window.showInformationMessage('Super Debug Window is now active!');
+
 	const superCallStackProvider = new SuperCallStackProvider(context.extensionUri);
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider, { webviewOptions: { retainContextWhenHidden: true } })); // TODO: retainContextWhenHidden isn't recommended because it's expensive. See https://code.visualstudio.com/api/extension-guides/webview#persistence
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
@@ -20,6 +21,8 @@ export function activate(context: vscode.ExtensionContext) {
 		superCallStackProvider.onDebugSessionStarted();
 		console.log('Debug session started: ', session.name);
 	}));
+	const superVariablesProvider = new SuperVariablesProvider(context.extensionUri);
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperVariablesProvider.viewType, superVariablesProvider, { webviewOptions: { retainContextWhenHidden: true } }));
 
 	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(session => {
 		vscode.window.showInformationMessage('Super Debug Window - Debug session terminated: ', session.name);
@@ -224,6 +227,98 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 						<tr>
 							<th>Function</th>
 							<th>File</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+
+				<script nonce="${nonce}" src="${scriptUri}"></script>
+			</body>
+			</html>`;
+	}
+}
+
+class SuperVariablesProvider implements vscode.WebviewViewProvider {
+
+	public static readonly viewType = 'super-debug-window.variables';
+	private _view?: vscode.WebviewView
+
+	constructor(
+		private readonly _extensionUri: vscode.Uri,
+	) { }
+
+	public resolveWebviewView(
+		webviewView: vscode.WebviewView,
+		context: vscode.WebviewViewResolveContext,
+		_token: vscode.CancellationToken,
+	) {
+		this._view = webviewView;
+
+		webviewView.webview.options = {
+			// Allow scripts in the webview
+			enableScripts: true,
+
+			localResourceRoots: [
+				this._extensionUri
+			]
+		};
+
+		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+		webviewView.webview.onDidReceiveMessage(data => {
+			switch (data.command) {
+				case 'getMoreInfoAboutVariable?':
+					{
+						break;
+					}
+				default:
+					break;
+			}
+		});
+	}
+
+
+	private _getHtmlForWebview(webview: vscode.Webview) {
+		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
+		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'variables-pane.js'));
+
+		// Do the same for the stylesheet.
+		const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'reset.css'));
+		const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'vscode.css'));
+		const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'main.css'));
+
+		// Use a nonce to only allow a specific script to be run.
+		const nonce = getNonce();
+
+		return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+
+				<!--
+					Use a content security policy to only allow loading styles from our extension directory,
+					and only allow scripts that have a specific nonce.
+					(See the 'webview-sample' extension sample for img-src content security policy examples)
+				-->
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+				<link href="${styleResetUri}" rel="stylesheet">
+				<link href="${styleVSCodeUri}" rel="stylesheet">
+				<link href="${styleMainUri}" rel="stylesheet">
+
+				<title>Super variables</title>
+			</head>
+			<body>
+				Here are some variables.
+				<table id="resizeMe" class="table">
+					<thead>
+						<tr>
+							<th>Variable</th>
+							<th>Value</th>
+							<th>Type</th>
 						</tr>
 					</thead>
 					<tbody>
