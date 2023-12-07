@@ -19,6 +19,21 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello VS Code!');
+
+/*
+		vscode.debug.onDidChangeActiveDebugSession(c => {
+			var b = vscode.debug.breakpoints[0];
+		});
+
+		vscode.debug.registerDebugAdapterTrackerFactory('*', {
+			createDebugAdapterTracker(session: vscode.DebugSession) {
+				return {
+					onWillReceiveMessage: m => console.log(`> ${JSON.stringify(m, undefined, 2)}`),
+					onDidSendMessage: m => console.log(`< ${JSON.stringify(m, undefined, 2)}`)
+				};
+			}
+		});
+		*/
 	});
 
 	context.subscriptions.push(disposable);
@@ -40,11 +55,68 @@ export function activate(context: vscode.ExtensionContext) {
 			provider.clearColors();
 		}));
 
+	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
+		console.log('Debug session started: ', session.name);
+
+		// session.customRequest("evaluate", {
+		//     "expression": "Math.sqrt(10)"
+		// }).then(reply => {
+		//     vscode.window.showInformationMessage(`result: ${reply.result}`);
+		// }, error => {
+		//     vscode.window.showInformationMessage(`error: ${error.message}`);
+		// });
+
+		/*
+		session.customRequest('stackTrace', { threadId: 1 }).then(reply => {
+			const frameId = reply.stackFrames[0].id;
+		}, error => {
+			vscode.window.showInformationMessage(`error: ${error.message}`);
+		});
+		*/
+	}));
+
+	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(session => {
+		console.log('Debug session terminated: ', session.name);
+	}));
+
+	context.subscriptions.push(vscode.debug.onDidChangeActiveDebugSession(session => {
+		console.log('Active debug session changed: ', session ? session.name : 'None');
+		//var b = vscode.debug.breakpoints[0];
+	}));
+
+	context.subscriptions.push(vscode.debug.onDidReceiveDebugSessionCustomEvent(event => {
+		console.log('Debug session custom event: ', event);
+	}));
+
+	context.subscriptions.push(vscode.debug.onDidChangeBreakpoints(event => {
+	}));
+
+	// https://stackoverflow.com/questions/73264131/i-am-developing-vs-code-extension-and-i-need-to-capture-the-call-stack-records-a
+	vscode.debug.registerDebugAdapterTrackerFactory('*', {
+		createDebugAdapterTracker(session: vscode.DebugSession) {
+			return {
+				//onWillReceiveMessage: m => console.log(`> ${JSON.stringify(m, undefined, 2)}`),
+				onDidSendMessage: m => onDebugMessage(provider, m)
+			};
+		}
+	});
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
+
+function onDebugMessage(provider: ColorsViewProvider, message: any) {
+	if (message.type === 'response' && message.command === 'stackTrace') {
+		message.body.stackFrames.forEach((frame: any) => {
+			console.log(frame);
+		});
+
+		provider.updateCallStack(message.body.stackFrames);
+
+		console.log("");
+	}
+}
 
 
 // UI ---->
@@ -100,6 +172,13 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 					}
 			}
 		});
+	}
+
+	public updateCallStack(stackFrames: any) {
+		if (this._view) {
+			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
+			this._view.webview.postMessage({ type: 'updateCallStack', value: stackFrames });
+		}
 	}
 
 	public addColor() {

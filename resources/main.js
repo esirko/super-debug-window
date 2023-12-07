@@ -96,9 +96,34 @@
                     clearColors();
                     break;
                 }
+            case 'updateCallStack':
+                {
+                    updateTable(message.value);
+                    break;
+                }
 
         }
     });
+
+    function updateTable(stack) {
+        const tbody = document.querySelector('#resizeMe tbody');
+        tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
+        for (const frame of stack) {
+            //const table = document.querySelector('#resizeMe');
+            const newrow = document.createElement('tr');
+            const newcell = document.createElement('td');
+            newcell.textContent = frame.name;
+            newrow.appendChild(newcell);
+            const newcell2 = document.createElement('td');
+            newcell2.textContent = frame.source.path;
+            //newcell2.style.backgroundColor = `#${colors[0].value}`;
+            newrow.appendChild(newcell2);
+            const newcell3 = document.createElement('td');
+            newcell3.textContent = frame.line
+            newrow.appendChild(newcell3);
+            tbody.appendChild(newrow);
+        }
+    }
 
     /**
      * @param {Array<{ value: string }>} colors
@@ -146,10 +171,10 @@
         newrow.appendChild(newcell);
         const newcell2 = document.createElement('td');
         newcell2.textContent = 'test2';
-        newcell2.style.backgroundColor = `#${colors[0].value}`;
+        //newcell2.style.backgroundColor = `#${colors[0].value}`;
         newrow.appendChild(newcell2);
         const newcell3 = document.createElement('td');
-        newcell3.textContent = `${colors[0].value}`;
+        newcell3.textContent = 'test3'; //`${colors[0].value}`;
         newrow.appendChild(newcell3);
         tbody.appendChild(newrow);
         table.appendChild(tbody);
@@ -183,4 +208,5 @@
         colors = [];
         updateColorList(colors);
     }
+
 }());
