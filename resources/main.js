@@ -69,6 +69,21 @@
             case 'updateCallStack':
                 {
                     updateTable(message.clear, message.stackFrames);
+                    const threadSelect = document.querySelector('#threads'); 
+                    threadSelect.value = message.threadId;
+                    break;
+                }
+            case 'updateThreads':
+                {
+                    const threads = message.threads;
+                    const threadSelect = document.querySelector('#threads');
+                    threadSelect.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
+                    for (const thread of threads) {
+                        const newoption = document.createElement('option');
+                        newoption.textContent = thread.name;
+                        newoption.value = thread.id;
+                        threadSelect.appendChild(newoption);
+                    }
                     break;
                 }
 

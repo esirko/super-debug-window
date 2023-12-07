@@ -60,6 +60,7 @@ function onDAPResponse(provider: vscode.WebviewViewProvider, responseMessage: an
 					break;
 				case 'threads':
 					console.log(`>>> Received Threads: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					(provider as SuperCallStackProvider).updateThreads(requestMessage, responseMessage);
 					break;
 				case 'scopes':
 					console.log(`>>> Received Scopes: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
@@ -151,18 +152,26 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 			// If startFrame > 0 and request_seq > request_seq_0, append to the previous call stack. Pay attention to the indices.
 			// 		Keep track of the request_seq, and the stackFrames, and append them to an array cachedResponses.
 			if (request.arguments.startFrame === 0) {
-				this._view.webview.postMessage({ type: 'updateCallStack', clear: true, stackFrames: response.body.stackFrames });
+				this._view.webview.postMessage({ type: 'updateCallStack', clear: true, threadId: request.arguments.threadId, stackFrames: response.body.stackFrames });
 				this.request_seq_0 = request.seq;
 				for (let i = 0; i < this.cachedResponses.length; i++) {
 					if (this.cachedResponses[i].request_seq > this.request_seq_0) {
-						this._view.webview.postMessage({ type: 'updateCallStack', clear: false, stackFrames: this.cachedResponses[i].stackFrames });
+						this._view.webview.postMessage({ type: 'updateCallStack', clear: false, threadId: request.arguments.threadId, stackFrames: this.cachedResponses[i].stackFrames });
 					}
 				}
 				this.cachedResponses = [];
 			} else if (request.seq > this.request_seq_0) {
 				this.cachedResponses.push({ request_seq: request.seq, stackFrames: response.body.stackFrames });
-				this._view.webview.postMessage({ type: 'updateCallStack', clear: false, stackFrames: response.body.stackFrames });
+				this._view.webview.postMessage({ type: 'updateCallStack', clear: false, threadId: request.arguments.threadId, stackFrames: response.body.stackFrames });
 			}
+		}
+	}
+
+	public updateThreads(request: any, response: any) {
+		if (this._view) {
+			this._view.show?.(true);
+
+			this._view.webview.postMessage({ type: 'updateThreads', threads: response.body.threads });
 		}
 	}
 
@@ -199,6 +208,10 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				<title>Super call stack</title>
 			</head>
 			<body>
+				<label for="threads">Thread:</label>
+				<select id="threads">
+				</select>
+
 				<table id="resizeMe" class="table">
 					<thead>
 						<tr>

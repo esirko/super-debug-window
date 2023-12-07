@@ -8,10 +8,15 @@ body {
 	width: 100%;
 }
 
+.table th {
+	background-color: #444;
+	color: #fff;
+}
+
 .table,
 .table th,
 .table td {
-	border: 1px solid #444;
+	border: 1px solid #ccc;
 }
 
 .table th,
