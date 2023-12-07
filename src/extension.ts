@@ -17,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider, { webviewOptions: { retainContextWhenHidden: true } })); // TODO: retainContextWhenHidden isn't recommended because it's expensive. See https://code.visualstudio.com/api/extension-guides/webview#persistence
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
 		vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
+		superCallStackProvider.onDebugSessionStarted();
 		console.log('Debug session started: ', session.name);
 	}));
 
@@ -145,6 +146,11 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 			}
 		});
 		*/
+	}
+
+	public onDebugSessionStarted() {
+		this.request_seq_0 = 0;
+		this.cachedResponses = [];
 	}
 
 	public updateCallStack(request: any, response: any) {
