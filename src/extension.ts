@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 function onDAPRequest(provider: vscode.WebviewViewProvider, message: any) {
-	//console.log("> ", message); //message.type, message.command)
+	console.log(">>> ", message); //message.type, message.command)
 	//console.log(`> ${JSON.stringify(message)}`);
 	requestMessages.push(message);
 }
@@ -70,6 +70,7 @@ function onDAPResponse(provider: vscode.WebviewViewProvider, responseMessage: an
 					break;
 				default:
 					console.log(`>>> Received Unhandled: ${responseMessage.command}`);
+					console.log(`>>> Received Unhandled: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					break;
 			}
 		} else {
@@ -128,6 +129,12 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				case 'gotoSourceLine':
 					{
 						vscode.window.showInformationMessage('Go to source line ' + data.file + ' at line number ' + data.line);
+						// Open the file and go to the line number
+						vscode.workspace.openTextDocument(data.file).then(document => vscode.window.showTextDocument(document))
+						let editor = vscode.window.activeTextEditor;
+						let range = editor.document.lineAt(data.line-1).range;
+						editor.selection =  new vscode.Selection(range.start, range.end);
+						editor.revealRange(range);
 						break;
 					}
 				default:

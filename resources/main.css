@@ -8,6 +8,10 @@ body {
 	width: 100%;
 }
 
+.table tr:hover {
+	background-color: #ffff9940;
+}
+
 .table th {
 	background-color: #444;
 	color: #fff;
