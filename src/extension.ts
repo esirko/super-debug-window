@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const superCallStackProvider = new SuperCallStackProvider(context.extensionUri);
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, superCallStackProvider, { webviewOptions: { retainContextWhenHidden: true } })); // TODO: retainContextWhenHidden isn't recommended because it's expensive. See https://code.visualstudio.com/api/extension-guides/webview#persistence
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
-		vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
+		//vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
 		superCallStackProvider.onDebugSessionStarted();
 		console.log('Debug session started: ', session.name);
 	}));
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperVariablesProvider.viewType, superVariablesProvider, { webviewOptions: { retainContextWhenHidden: true } }));
 
 	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(session => {
-		vscode.window.showInformationMessage('Super Debug Window - Debug session terminated: ', session.name);
+		//vscode.window.showInformationMessage('Super Debug Window - Debug session terminated: ', session.name);
 		console.log('Debug session terminated: ', session.name);
 	}));
 

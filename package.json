@@ -31,16 +31,16 @@
 				{
 					"type": "webview",
 					"id": "super-debug-window.callStack",
-					"name": "Super call stack 2",
-          "contextualTitle": "Super call stack 3"
+					"name": "Super call stack",
+          "contextualTitle": "Super call stack"
 				}
 			],
       "super-variables-panel": [
 				{
 					"type": "webview",
 					"id": "super-debug-window.variables",
-					"name": "Super variables 2",
-          "contextualTitle": "Super variables 3"
+					"name": "Super variables",
+          "contextualTitle": "Super variables"
 				}
 			]
 		},
