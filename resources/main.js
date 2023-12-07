@@ -81,18 +81,26 @@
             tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
         }
         for (const frame of frames) {
-            //const table = document.querySelector('#resizeMe');
+            // Create a table row that you can double-click on to jump to the source code
             const newrow = document.createElement('tr');
-            const newcell = document.createElement('td');
-            newcell.textContent = frame.name;
-            newrow.appendChild(newcell);
+            newrow.addEventListener('dblclick', () => {
+                vscode.postMessage({
+                    command: 'gotoSourceLine',
+                    file: frame.source.path,
+                    line: frame.line,
+                });
+            });
+            const newcell1 = document.createElement('td');
+            newcell1.textContent = frame.name;
             const newcell2 = document.createElement('td');
-            newcell2.textContent = frame.source.path;
-            //newcell2.style.backgroundColor = `#${colors[0].value}`;
+            newcell2.textContent = frame.source.name + ':' + frame.line;
+            newcell2.title = frame.source.path + ':' + frame.line;
+            if (frame.presentationHint === 'subtle') {
+                newcell1.classList.add("subtle-callstack-frame")
+                newcell2.classList.add("subtle-callstack-frame")
+            }
+            newrow.appendChild(newcell1);
             newrow.appendChild(newcell2);
-            const newcell3 = document.createElement('td');
-            newcell3.textContent = frame.line
-            newrow.appendChild(newcell3);
             tbody.appendChild(newrow);
         }
     }

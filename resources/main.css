@@ -5,6 +5,7 @@ body {
 /* ---- table ---- */
 .table {
 	border-collapse: collapse;
+	width: 100%;
 }
 
 .table,
@@ -19,7 +20,7 @@ body {
 }
 
 .table th {
-	position: relative;
+	text-align: left;
 }
 
 .resizer {
@@ -41,4 +42,9 @@ body {
 	height: 100px;
 	width: 100px;
 	position: relative;
+}
+
+.subtle-callstack-frame {
+	color:#444;
+	font-style: italic
 }

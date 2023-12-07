@@ -122,30 +122,17 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-		/*
 		webviewView.webview.onDidReceiveMessage(data => {
-			switch (data.type) {
-				case 'colorSelected':
+			switch (data.command) {
+				case 'gotoSourceLine':
 					{
-						vscode.window.showInformationMessage('Hello');
-						vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`#${data.value}`));
-						break;
-					}
-				case 'addcolor':
-					{
-						console.log('add color');
-						vscode.window.showInformationMessage('addcolor');
+						vscode.window.showInformationMessage('Go to source line ' + data.file + ' at line number ' + data.line);
 						break;
 					}
 				default:
-					{
-						console.log('Hello');
-						vscode.window.showInformationMessage('Hello');
-						break;
-					}
+					break;
 			}
 		});
-		*/
 	}
 
 	public onDebugSessionStarted() {
@@ -215,9 +202,8 @@ class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				<table id="resizeMe" class="table">
 					<thead>
 						<tr>
-							<th>No.</th>
-							<th>First name</th>
-							<th>Last name</th>
+							<th>Function</th>
+							<th>File</th>
 						</tr>
 					</thead>
 					<tbody>
