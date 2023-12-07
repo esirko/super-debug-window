@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { on } from 'events';
 import * as vscode from 'vscode';
 //import "vscode-webview" // Cannot find name 'acquireVsCodeApi'.ts(2304) - https://stackoverflow.com/questions/56237448/how-to-make-acquirevscodeapi-available-in-vscode-webview-react
 
@@ -95,8 +96,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.debug.registerDebugAdapterTrackerFactory('*', {
 		createDebugAdapterTracker(session: vscode.DebugSession) {
 			return {
-				//onWillReceiveMessage: m => console.log(`> ${JSON.stringify(m, undefined, 2)}`),
-				onDidSendMessage: m => onDebugMessage(provider, m)
+				onWillReceiveMessage: m => onDebugRequest(provider, m),
+				onDidSendMessage: m => onDebugResponse(provider, m)
 			};
 		}
 	});
@@ -105,17 +106,25 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
+function onDebugRequest(provider: ColorsViewProvider, message: any) {
+	//console.log("> ", message); //message.type, message.command)
+	console.log(`> ${JSON.stringify(message)}`); //.type, message.command, message.body)
+}
 
-function onDebugMessage(provider: ColorsViewProvider, message: any) {
+function onDebugResponse(provider: ColorsViewProvider, message: any) {
 	if (message.type === 'response' && message.command === 'stackTrace') {
 		message.body.stackFrames.forEach((frame: any) => {
-			console.log(frame);
+//			console.log(frame);
 		});
 
 		provider.updateCallStack(message.body.stackFrames);
 
-		console.log("");
+//		console.log("");
 	}
+
+	//console.log(message.type, message.command, message.body)
+	//console.log("< ", message); //.type, message.command, message.body)
+	console.log(`< ${JSON.stringify(message)}`); //.type, message.command, message.body)
 }
 
 
