@@ -11,93 +11,27 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "super-debug-window" is now active!');
+	console.log('super-debug-window is now active!');
+	vscode.window.showInformationMessage('Super Debug Window is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('super-debug-window.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello VS Code!');
-
-/*
-		vscode.debug.onDidChangeActiveDebugSession(c => {
-			var b = vscode.debug.breakpoints[0];
-		});
-
-		vscode.debug.registerDebugAdapterTrackerFactory('*', {
-			createDebugAdapterTracker(session: vscode.DebugSession) {
-				return {
-					onWillReceiveMessage: m => console.log(`> ${JSON.stringify(m, undefined, 2)}`),
-					onDidSendMessage: m => console.log(`< ${JSON.stringify(m, undefined, 2)}`)
-				};
-			}
-		});
-		*/
-	});
-
-	context.subscriptions.push(disposable);
-
-	const provider = new ColorsViewProvider(context.extensionUri);
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			ColorsViewProvider.viewType,
-			provider
-		)
-	);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('calicoColors.addColor', () => {
-			provider.addColor();
-		}));
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('calicoColors.clearColors', () => {
-			provider.clearColors();
-		}));
-
+	const provider = new SuperCallStackProvider(context.extensionUri);
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider(SuperCallStackProvider.viewType, provider));
 	context.subscriptions.push(vscode.debug.onDidStartDebugSession(session => {
+		vscode.window.showInformationMessage('Super Debug Window - Debug session started: ', session.name);
 		console.log('Debug session started: ', session.name);
-
-		// session.customRequest("evaluate", {
-		//     "expression": "Math.sqrt(10)"
-		// }).then(reply => {
-		//     vscode.window.showInformationMessage(`result: ${reply.result}`);
-		// }, error => {
-		//     vscode.window.showInformationMessage(`error: ${error.message}`);
-		// });
-
-		/*
-		session.customRequest('stackTrace', { threadId: 1 }).then(reply => {
-			const frameId = reply.stackFrames[0].id;
-		}, error => {
-			vscode.window.showInformationMessage(`error: ${error.message}`);
-		});
-		*/
 	}));
 
 	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(session => {
+		vscode.window.showInformationMessage('Super Debug Window - Debug session terminated: ', session.name);
 		console.log('Debug session terminated: ', session.name);
-	}));
-
-	context.subscriptions.push(vscode.debug.onDidChangeActiveDebugSession(session => {
-		console.log('Active debug session changed: ', session ? session.name : 'None');
-		//var b = vscode.debug.breakpoints[0];
-	}));
-
-	context.subscriptions.push(vscode.debug.onDidReceiveDebugSessionCustomEvent(event => {
-		console.log('Debug session custom event: ', event);
-	}));
-
-	context.subscriptions.push(vscode.debug.onDidChangeBreakpoints(event => {
 	}));
 
 	// https://stackoverflow.com/questions/73264131/i-am-developing-vs-code-extension-and-i-need-to-capture-the-call-stack-records-a
 	vscode.debug.registerDebugAdapterTrackerFactory('*', {
 		createDebugAdapterTracker(session: vscode.DebugSession) {
 			return {
-				onWillReceiveMessage: m => onDebugRequest(provider, m),
-				onDidSendMessage: m => onDebugResponse(provider, m)
+				onWillReceiveMessage: m => onDAPRequest(provider, m),
+				onDidSendMessage: m => onDAPResponse(provider, m)
 			};
 		}
 	});
@@ -106,34 +40,27 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
-function onDebugRequest(provider: ColorsViewProvider, message: any) {
+function onDAPRequest(provider: SuperCallStackProvider, message: any) {
 	//console.log("> ", message); //message.type, message.command)
-	console.log(`> ${JSON.stringify(message)}`); //.type, message.command, message.body)
+	console.log(`> ${JSON.stringify(message)}`);
 }
 
-function onDebugResponse(provider: ColorsViewProvider, message: any) {
+function onDAPResponse(provider: SuperCallStackProvider, message: any) {
 	if (message.type === 'response' && message.command === 'stackTrace') {
 		message.body.stackFrames.forEach((frame: any) => {
-//			console.log(frame);
 		});
 
 		provider.updateCallStack(message.body.stackFrames);
-
-//		console.log("");
 	}
 
-	//console.log(message.type, message.command, message.body)
 	//console.log("< ", message); //.type, message.command, message.body)
-	console.log(`< ${JSON.stringify(message)}`); //.type, message.command, message.body)
+	console.log(`< ${JSON.stringify(message)}`);
 }
 
 
-// UI ---->
+class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
-
-class ColorsViewProvider implements vscode.WebviewViewProvider {
-
-	public static readonly viewType = 'calicoColors.colorsView';
+	public static readonly viewType = 'super-debug-window.callStack';
 
 	private _view?: vscode.WebviewView;
 
@@ -159,6 +86,7 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+		/*
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.type) {
 				case 'colorSelected':
@@ -181,25 +109,13 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 					}
 			}
 		});
+		*/
 	}
 
 	public updateCallStack(stackFrames: any) {
 		if (this._view) {
 			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
 			this._view.webview.postMessage({ type: 'updateCallStack', value: stackFrames });
-		}
-	}
-
-	public addColor() {
-		if (this._view) {
-			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-			this._view.webview.postMessage({ type: 'addColor' });
-		}
-	}
-
-	public clearColors() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'clearColors' });
 		}
 	}
 
@@ -233,15 +149,9 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
 
-				<title>Cat Colors</title>
+				<title>Super call stack</title>
 			</head>
 			<body>
-				<ul class="color-list">
-				</ul>
-
-				<button class="add-color-button">Add Color</button>
-				<button class="clear-colors-button">Clear Colors</button>
-
 				<table id="resizeMe" class="table">
 					<thead>
 						<tr>
@@ -251,56 +161,6 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td>1</td>
-							<td>Andrea</td>
-							<td>Ross</td>
-						</tr>
-						<tr>
-							<td>2</td>
-							<td>Penelope</td>
-							<td>Mills</td>
-						</tr>
-						<tr>
-							<td>3</td>
-							<td>Sarah</td>
-							<td>Grant</td>
-						</tr>
-						<tr>
-							<td>4</td>
-							<td>Vanessa</td>
-							<td>Roberts</td>
-						</tr>
-						<tr>
-							<td>5</td>
-							<td>Oliver</td>
-							<td>Alsop</td>
-						</tr>
-						<tr>
-							<td>6</td>
-							<td>Jennifer</td>
-							<td>Forsyth</td>
-						</tr>
-						<tr>
-							<td>7</td>
-							<td>Michelle</td>
-							<td>King</td>
-						</tr>
-						<tr>
-							<td>8</td>
-							<td>Steven</td>
-							<td>Kelly</td>
-						</tr>
-						<tr>
-							<td>9</td>
-							<td>Julian</td>
-							<td>Ferguson</td>
-						</tr>
-						<tr>
-							<td>10</td>
-							<td>Chloe</td>
-							<td>Ince</td>
-						</tr>
 					</tbody>
 				</table>
 

@@ -25,7 +25,7 @@
 			"super-debug-panel": [
 				{
 					"type": "webview",
-					"id": "calicoColors.colorsView",
+					"id": "super-debug-window.callStack",
 					"name": "Super debug window (Panel name)",
           "contextualTitle": "Super debug window (CT)"
 				}
@@ -53,7 +53,7 @@
 				{
 					"command": "calicoColors.clearColors",
 					"group": "navigation",
-					"when": "view == calicoColors.colorsView"
+					"when": "view == super-debug-window.callStack"
 				}
 			]
 		}
