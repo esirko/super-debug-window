@@ -53,6 +53,7 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 						break;
 					}
 				case 'changeThread':
+					vscode.debug.activeDebugSession?.customRequest('stackTrace', { threadId: Number(data.threadId), startFrame: 0, levels: 20});
 					break;
 				default:
 					break;
