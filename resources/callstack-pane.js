@@ -88,7 +88,7 @@
     const threadSelect = document.querySelector('#threads');
     threadSelect.addEventListener('change', () => {
         vscode.postMessage({
-            command: 'threadChange',
+            command: 'changeThread',
             threadId: threadSelect.value,
         });
     });
