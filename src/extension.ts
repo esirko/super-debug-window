@@ -87,12 +87,6 @@ function onDAPResponse(superCallStackProvider: SuperCallStackProvider, superVari
 					//console.log(`>>> ${responseMessage.request_seq} Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					superVariablesProvider.updateVariables(requestMessage, responseMessage);
 					break;
-				case 'continue':
-					// TODO: see doc here https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Initialize
-					vscode.debug.activeDebugSession?.customRequest('threads');
-					vscode.debug.activeDebugSession?.customRequest('stackTrace', { threadId: 1, startFrame: 0, levels: 20 });
-					vscode.debug.activeDebugSession
-					break;
 				default:
 					//console.log(`        Unhandled: ${responseMessage.seq}, ${responseMessage.request_seq}: ${responseMessage.command} `, responseMessage);
 					//console.log(`        Unhandled: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
