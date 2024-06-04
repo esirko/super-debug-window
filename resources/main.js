@@ -85,6 +85,14 @@
         }
     });
 
+    const threadSelect = document.querySelector('#threads');
+    threadSelect.addEventListener('change', () => {
+        vscode.postMessage({
+            command: 'threadChange',
+            threadId: threadSelect.value,
+        });
+    });
+
     function updateTable(clear, frames) {
         const tbody = document.querySelector('#resizeMe tbody');
         if (clear) {
@@ -114,5 +122,4 @@
             tbody.appendChild(newrow);
         }
     }
-
 }());

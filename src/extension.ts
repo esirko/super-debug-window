@@ -32,21 +32,33 @@ export function activate(context: vscode.ExtensionContext) {
 	// https://stackoverflow.com/questions/73264131/i-am-developing-vs-code-extension-and-i-need-to-capture-the-call-stack-records-a
 	vscode.debug.registerDebugAdapterTrackerFactory('*', {
 		createDebugAdapterTracker(session: vscode.DebugSession) {
+			// Note: session can be accessed via vscode.debug.activeDebugSession later
 			return {
 				onWillReceiveMessage: m => onDAPRequest(m),
 				onDidSendMessage: m => onDAPResponse(superCallStackProvider, superVariablesProvider, m)
 			};
 		}
 	});
+
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
 
 function onDAPRequest(message: any) {
-	console.log(">>> ", message); //message.type, message.command)
+	console.log(`-> Request  [${message.seq}] ${isRequestUnhandled(message.command) ? "" : "[unhandled] "}${message.command}`, message); //message.type, message.command)
 	//console.log(`> ${JSON.stringify(message)}`);
 	requestMessages.push(message);
+}
+
+function isRequestUnhandled(message: string) {
+	const handledRequests = [
+		'stackTrace',
+		'threads',
+		'scopes',
+		'variables'
+	];
+	return handledRequests.includes(message);
 }
 
 function onDAPResponse(superCallStackProvider: SuperCallStackProvider, superVariablesProvider: SuperVariablesProvider, responseMessage: any) {
@@ -56,26 +68,34 @@ function onDAPResponse(superCallStackProvider: SuperCallStackProvider, superVari
 		if (requestMessage) {
 			requestMessages.splice(requestMessages.indexOf(requestMessage), 1);
 			// switch statement for different types of responses
+			console.log(`<- Response [${responseMessage.request_seq}] ${isRequestUnhandled(responseMessage.command) ? "" : "[unhandled] "}${responseMessage.command}`, responseMessage);
 			switch (responseMessage.command) {
 				case 'stackTrace':
-					console.log(`>>> Received Stack Trace: {"request":${JSON.stringify(requestMessage)},"response":${JSON.stringify(responseMessage)}}`);
+					//console.log(`>>> ${responseMessage.request_seq} Received Stack Trace: {"request":${JSON.stringify(requestMessage)},"response":${JSON.stringify(responseMessage)}}`);
 					superCallStackProvider.updateCallStack(requestMessage, responseMessage);
 					break;
 				case 'threads':
-					console.log(`>>> Received Threads: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					//console.log(`>>> ${responseMessage.request_seq} Received Threads: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					superCallStackProvider.updateThreads(requestMessage, responseMessage);
 					break;
 				case 'scopes':
-					console.log(`>>> Received Scopes: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					//console.log(`>>> ${responseMessage.request_seq} Received Scopes: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					superVariablesProvider.updateScopes(requestMessage, responseMessage);
 					break;
 				case 'variables':
-					console.log(`>>> Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					//console.log(`>>> ${responseMessage.request_seq} Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					//console.log(`>>> ${responseMessage.request_seq} Received Variables: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					superVariablesProvider.updateVariables(requestMessage, responseMessage);
 					break;
+				case 'continue':
+					// TODO: see doc here https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Initialize
+					vscode.debug.activeDebugSession?.customRequest('threads');
+					vscode.debug.activeDebugSession?.customRequest('stackTrace', { threadId: 1, startFrame: 0, levels: 20 });
+					vscode.debug.activeDebugSession
+					break;
 				default:
-					console.log(`>>> Received Unhandled: ${responseMessage.command}`);
-					console.log(`>>> Received Unhandled: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
+					//console.log(`        Unhandled: ${responseMessage.seq}, ${responseMessage.request_seq}: ${responseMessage.command} `, responseMessage);
+					//console.log(`        Unhandled: ${JSON.stringify(requestMessage)} : ${JSON.stringify(responseMessage)}`);
 					break;
 			}
 		} else {
