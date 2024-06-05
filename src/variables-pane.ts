@@ -65,7 +65,7 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 			let variables = response.body.variables;
 			variables.sort((a: { name: string }, b: { name: string }) => (a.name > b.name) ? 1 : -1);
 
-			this._view.webview.postMessage({ type: 'updateVariables', variables: response.body.variables });
+			this._view.webview.postMessage({ type: 'updateVariables', variablesReferenceId: request.arguments.variablesReference, variables: response.body.variables });
 		} else {
 			this._pendingUpdateVariables = { request: request, response: response };
 		}

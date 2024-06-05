@@ -59,7 +59,7 @@
         switch (message.type) {
             case 'updateVariables':
                 {
-                    const tbody = document.querySelector('#resizeMe tbody');
+                    const tbody = document.querySelector('#scopes-' + message.variablesReferenceId + ' tbody');
                     tbody.textContent = '';
                     for (const variable of message.variables) {
                         const tr = document.createElement('tr');
@@ -77,7 +77,7 @@
                         h2.textContent = scope.name;
                         sbody.appendChild(h2);
                         const table = document.createElement('table');
-                        table.id = 'resizeMe';
+                        table.id = 'scopes-' + scope.variablesReference;
                         table.className = 'table';
                         table.innerHTML = `<thead><tr><th>Variable</th><th>Value</th><th>Type</th></tr></thead><tbody></tbody>`;
                         sbody.appendChild(table);

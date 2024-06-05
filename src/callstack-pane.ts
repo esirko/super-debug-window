@@ -145,7 +145,7 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				<select id="threads">
 				</select>
 
-				<table id="resizeMe" class="table">
+				<table id="callStackTable" class="table">
 					<thead>
 						<tr>
 							<th>Function</th>

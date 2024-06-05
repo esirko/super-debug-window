@@ -54,7 +54,7 @@
             resizer.addEventListener('mousedown', mouseDownHandler);
         };
 
-        createResizableTable(document.getElementById('resizeMe'));
+        createResizableTable(document.getElementById('callStackTable'));
     });
 
     // Handle messages sent from the extension to the webview
@@ -94,7 +94,7 @@
     });
 
     function updateTable(clear, frames) {
-        const tbody = document.querySelector('#resizeMe tbody');
+        const tbody = document.querySelector('#callStackTable tbody');
         if (clear) {
             tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
         }
