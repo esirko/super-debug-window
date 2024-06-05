@@ -92,21 +92,39 @@
         });
     });
 
+    let currentHighlightedRow = null;
+
     function updateTable(clear, frames) {
         const tbody = document.querySelector('#callStackTable tbody');
         if (clear) {
             tbody.textContent = ''; // Remove all previous elements ("simple and effective way to remove all rows from a table in Javascript" - Copilot)
         }
+        let firstFrame = true;
         for (const frame of frames) {
             // Create a table row that you can double-click on to jump to the source code
             const newrow = document.createElement('tr');
+            // by default the first frame is highlighted when you start a new list of frames
+            if (clear && firstFrame) {
+                newrow.classList.add("highlighted-callstack-frame");
+                currentHighlightedRow = newrow;
+                firstFrame = false;
+            }
+            //newrow.classList.add("highlighted-callstack-frame");
             newrow.addEventListener('dblclick', () => {
                 vscode.postMessage({
                     command: 'gotoSourceLine',
                     file: frame.source.path,
                     line: frame.line,
                 });
+                if (currentHighlightedRow) {
+                    currentHighlightedRow.classList.remove("highlighted-callstack-frame");
+                }
+                newrow.classList.add("highlighted-callstack-frame");
+                currentHighlightedRow = newrow;
             });
+            //const newcell0 = document.createElement('td');
+            //newcell0.textContent = '➡️';
+            //newcell0.classList.add("highlighted-callstack-frame-indicator");
             const newcell1 = document.createElement('td');
             newcell1.textContent = frame.name;
             const newcell2 = document.createElement('td');
@@ -116,6 +134,7 @@
                 newcell1.classList.add("subtle-callstack-frame")
                 newcell2.classList.add("subtle-callstack-frame")
             }
+            //newrow.appendChild(newcell0);
             newrow.appendChild(newcell1);
             newrow.appendChild(newcell2);
             tbody.appendChild(newrow);

@@ -148,6 +148,7 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				<table id="callStackTable" class="table">
 					<thead>
 						<tr>
+							<!-- <th class="highlighted-callstack-frame-indicator">➡️</th> -->
 							<th>Function</th>
 							<th>File</th>
 						</tr>
