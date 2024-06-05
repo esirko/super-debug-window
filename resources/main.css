@@ -30,6 +30,7 @@ body {
 
 .table th {
 	text-align: left;
+	position: relative;
 }
 
 .resizer {

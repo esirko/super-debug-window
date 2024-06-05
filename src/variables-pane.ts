@@ -5,6 +5,8 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'super-debug-window.variables';
 	private _view?: vscode.WebviewView
+	private _pendingUpdateScopes: any;
+	private _pendingUpdateVariables: any;	
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
@@ -28,6 +30,16 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+		// https://github.com/microsoft/vscode/issues/146330
+		if (this._pendingUpdateScopes) {
+			this.updateScopes(this._pendingUpdateScopes.request, this._pendingUpdateScopes.response);
+			this._pendingUpdateScopes = undefined;
+		}
+		if (this._pendingUpdateVariables) {
+			this.updateVariables(this._pendingUpdateVariables.request, this._pendingUpdateVariables.response);
+			this._pendingUpdateVariables = undefined;
+		}
+
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.command) {
 				case 'getMoreInfoAboutVariable?':
@@ -42,24 +54,22 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 
 	public updateScopes(request: any, response: any) {
 		if (this._view) {
-			this._view.show?.(true);
-
-			this._view.webview.postMessage({ type: 'updateScopes', threads: response.body});
+			this._view.webview.postMessage({ type: 'updateScopes', scopes: response.body.scopes});
+		} else {
+			this._pendingUpdateScopes = { request: request, response: response };
 		}
 	}
 
 	public updateVariables(request: any, response: any) {
 		if (this._view) {
-			this._view.show?.(true);
-
 			let variables = response.body.variables;
 			variables.sort((a: { name: string }, b: { name: string }) => (a.name > b.name) ? 1 : -1);
 
 			this._view.webview.postMessage({ type: 'updateVariables', variables: response.body.variables });
+		} else {
+			this._pendingUpdateVariables = { request: request, response: response };
 		}
 	}
-
-
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
@@ -94,19 +104,7 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 				<title>Super variables</title>
 			</head>
 			<body>
-				Here are some variables.
-				<table id="resizeMe" class="table">
-					<thead>
-						<tr>
-							<th>Variable</th>
-							<th>Value</th>
-							<th>Type</th>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-
+				<div id="scopes"></div>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

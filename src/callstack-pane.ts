@@ -6,6 +6,8 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'super-debug-window.callStack';
 	private _view?: vscode.WebviewView;
+	private _pendingUpdateThreads: any;
+	private _pendingUpdateCallStack: any;
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
@@ -37,6 +39,17 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+		// https://github.com/microsoft/vscode/issues/146330
+		if (this._pendingUpdateThreads) {
+			this.updateThreads(this._pendingUpdateThreads.request, this._pendingUpdateThreads.response);
+			this._pendingUpdateThreads = undefined;
+		}
+		if (this._pendingUpdateCallStack) {
+			// TODO: this won't work if we have multiple call stack responses in the queue.
+			this.updateCallStack(this._pendingUpdateCallStack.request, this._pendingUpdateCallStack.response);
+			this._pendingUpdateCallStack = undefined;
+		}
+
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.command) {
 				case 'gotoSourceLine':
@@ -61,11 +74,16 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 		});
 	}
 
+	public updateThreads(request: any, response: any) {
+		if (this._view) {
+			this._view.webview.postMessage({ type: 'updateThreads', threads: response.body.threads });
+		} else {
+			this._pendingUpdateThreads = { request: request, response: response };
+		}
+	}
 
 	public updateCallStack(request: any, response: any) {
 		if (this._view) {
-			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-
 			// Here's the strategy to handle out-of-order call stack responses, based on my guesses about how the DAP works:
 			// If startFrame == 0, then we are at the top of the call stack, so clear the previous call stack first. 
 			// 		Keep track of the request_seq and call it request_seq_0.
@@ -85,14 +103,8 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 				this.cachedResponses.push({ request_seq: request.seq, stackFrames: response.body.stackFrames });
 				this._view.webview.postMessage({ type: 'updateCallStack', clear: false, threadId: request.arguments.threadId, stackFrames: response.body.stackFrames });
 			}
-		}
-	}
-
-	public updateThreads(request: any, response: any) {
-		if (this._view) {
-			this._view.show?.(true);
-
-			this._view.webview.postMessage({ type: 'updateThreads', threads: response.body.threads });
+		} else {
+			this._pendingUpdateCallStack = { request: request, response: response };
 		}
 	}
 
