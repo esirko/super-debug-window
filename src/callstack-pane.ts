@@ -52,9 +52,8 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.command) {
-				case 'gotoSourceLine':
+				case 'selectStackFrame':
 					{
-						//vscode.window.showInformationMessage('Go to source line ' + data.file + ' at line number ' + data.line);
 						// Open the file and go to the line number
 						vscode.workspace.openTextDocument(data.file).then(document => vscode.window.showTextDocument(document))
 						let editor = vscode.window.activeTextEditor;
@@ -63,6 +62,8 @@ export class SuperCallStackProvider implements vscode.WebviewViewProvider {
 							editor.selection =  new vscode.Selection(range.start, range.end);
 							editor.revealRange(range);
 						}
+						// Request all the scopes and variables again
+						vscode.debug.activeDebugSession?.customRequest('scopes', { frameId: data.frameId, manualFollowupRequests: true });
 						break;
 					}
 				case 'changeThread':

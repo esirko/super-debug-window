@@ -55,6 +55,11 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 	public updateScopes(request: any, response: any) {
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'updateScopes', scopes: response.body.scopes});
+			if (request.arguments.manualFollowupRequests) {
+				for (let scope of response.body.scopes) {
+					vscode.debug.activeDebugSession?.customRequest('variables', { variablesReference: scope.variablesReference });
+				}
+			}
 		} else {
 			this._pendingUpdateScopes = { request: request, response: response };
 		}

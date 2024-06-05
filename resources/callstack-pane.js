@@ -112,9 +112,10 @@
             //newrow.classList.add("highlighted-callstack-frame");
             newrow.addEventListener('dblclick', () => {
                 vscode.postMessage({
-                    command: 'gotoSourceLine',
+                    command: 'selectStackFrame',
                     file: frame.source.path,
                     line: frame.line,
+                    frameId: frame.id
                 });
                 if (currentHighlightedRow) {
                     currentHighlightedRow.classList.remove("highlighted-callstack-frame");
