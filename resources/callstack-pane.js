@@ -61,13 +61,6 @@
     window.addEventListener('message', event => {
         const message = event.data; // The json data that the extension sent
         switch (message.type) {
-            case 'updateCallStack':
-                {
-                    updateTable(message.clear, message.stackFrames);
-                    const threadSelect = document.querySelector('#threads'); 
-                    threadSelect.value = message.threadId;
-                    break;
-                }
             case 'updateThreads':
                 {
                     const threads = message.threads;
@@ -81,7 +74,13 @@
                     }
                     break;
                 }
-
+            case 'updateCallStack':
+                {
+                    updateTable(message.clear, message.stackFrames);
+                    const threadSelect = document.querySelector('#threads'); 
+                    threadSelect.value = message.threadId;
+                    break;
+                }
         }
     });
 

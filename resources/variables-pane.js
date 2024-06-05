@@ -57,17 +57,6 @@
     window.addEventListener('message', event => {
         const message = event.data; // The json data that the extension sent
         switch (message.type) {
-            case 'updateVariables':
-                {
-                    const tbody = document.querySelector('#scopes-' + message.variablesReferenceId + ' tbody');
-                    tbody.textContent = '';
-                    for (const variable of message.variables) {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${variable.name}</td><td>${variable.value}</td><td>${variable.type}</td>`;
-                        tbody.appendChild(tr);
-                    }
-                    break;
-                }
             case 'updateScopes':
                 {
                     const sbody = document.querySelector('#scopes');
@@ -82,6 +71,17 @@
                         table.innerHTML = `<thead><tr><th>Variable</th><th>Value</th><th>Type</th></tr></thead><tbody></tbody>`;
                         sbody.appendChild(table);
                         createResizableTable(table); // must happen after the table is added to the DOM so that the height can be used to set the resizer height
+                    }
+                    break;
+                }
+            case 'updateVariables':
+                {
+                    const tbody = document.querySelector('#scopes-' + message.variablesReferenceId + ' tbody');
+                    tbody.textContent = '';
+                    for (const variable of message.variables) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${variable.name}</td><td>${variable.value}</td><td>${variable.type}</td>`;
+                        tbody.appendChild(tr);
                     }
                     break;
                 }
