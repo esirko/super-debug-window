@@ -80,7 +80,37 @@
                     tbody.textContent = '';
                     for (const variable of message.variables) {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${variable.name}</td><td>${variable.value}</td><td>${variable.type}</td>`;
+
+                            let td = document.createElement('td');
+                            td.classList.add('ellipsis');
+                            let span = document.createElement('span');
+                            span.textContent = variable.name;
+                            td.appendChild(span);
+                            tr.appendChild(td);
+
+                            td = document.createElement('td');
+                            if (variable.variablesReference > 0) {
+                                td.classList.add('ellipsis-but-not-one-line');
+                            } else {
+                                td.classList.add('ellipsis');
+                            }
+                            span = document.createElement('span');
+                            span.textContent = variable.value;
+                            td.appendChild(span);
+                            tr.appendChild(td);
+
+                            td = document.createElement('td');
+                            td.classList.add('ellipsis');
+                            span = document.createElement('span');
+                            span.textContent = variable.type;
+                            td.appendChild(span);
+                            tr.appendChild(td);
+
+                            /*
+                        tr.innerHTML = `<td class="ellipsis"><span>${variable.name}</span></td>
+                                        <td class="ellipsis"><span>${variable.value}</span></td>
+                                        <td class="ellipsis"><span>${variable.type}</span></td>`;
+                                        */
                         tbody.appendChild(tr);
                     }
                     break;
