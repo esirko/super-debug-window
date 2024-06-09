@@ -53,6 +53,33 @@
         resizer.addEventListener('mousedown', mouseDownHandler);
     };
 
+    const addTreeBranch = function(treeul, variable) {
+        const li = document.createElement('li');
+        const details = document.createElement('details');
+        details.classList.add('var-' + variable.variablesReference);
+        details.ontoggle = function() {
+            if (details.open) {
+                if (!details.hasAttribute('data-loaded')) {
+                    vscode.postMessage({
+                        command: 'getVariableMembers',
+                        variablesReference: variable.variablesReference,
+                    });
+                    details.setAttribute('data-loaded', 'true');
+                }
+            }
+        }
+        const summary = document.createElement('summary');
+        const div = document.createElement('div');
+        div.classList.add('ellipsis');
+        const span = document.createElement('span');
+        span.textContent = variable.value;
+        div.appendChild(span);
+        summary.appendChild(div);
+        details.appendChild(summary);
+        li.appendChild(details);
+        treeul.appendChild(li);
+    }
+
     // Handle messages sent from the extension to the webview
     window.addEventListener('message', event => {
         const message = event.data; // The json data that the extension sent
@@ -75,7 +102,27 @@
                     break;
                 }
             case 'updateVariables':
-                {
+                if (message.subvariableNotScopeRenameMe) {
+                    const details = document.querySelector('.var-' + message.variablesReferenceId);
+                    const subtreeul = document.createElement('ul');
+
+                    for (const variable of message.variables) {
+
+                        if (variable.variablesReference == 0) {
+                            const li = document.createElement('li');
+                            const div = document.createElement('div');
+                            div.classList.add('ellipsis');
+                            const span = document.createElement('span');
+                            span.textContent = variable.value;
+                            div.appendChild(span);
+                            li.appendChild(div);
+                            subtreeul.appendChild(li);
+                        } else {
+                            addTreeBranch(subtreeul, variable);
+                        } 
+                    }
+                    details.appendChild(subtreeul);
+                } else {
                     const tbody = document.querySelector('#scopes-' + message.variablesReferenceId + ' tbody');
                     tbody.textContent = '';
                     for (const variable of message.variables) {
@@ -89,14 +136,18 @@
                             tr.appendChild(td);
 
                             td = document.createElement('td');
-                            if (variable.variablesReference > 0) {
-                                td.classList.add('ellipsis-but-not-one-line');
+                            if (variable.variablesReference == 0) {
+                                td.classList.add('ellipsis')
+                                td.classList.add('nontree');
+                                span = document.createElement('span');
+                                span.textContent = variable.value;
+                                td.appendChild(span);
                             } else {
-                                td.classList.add('ellipsis');
+                                treeul = document.createElement('ul');
+                                treeul.classList.add('tree');
+                                addTreeBranch(treeul, variable);
+                                td.appendChild(treeul);
                             }
-                            span = document.createElement('span');
-                            span.textContent = variable.value;
-                            td.appendChild(span);
                             tr.appendChild(td);
 
                             td = document.createElement('td');

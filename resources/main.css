@@ -90,18 +90,28 @@ position: absolute;
     text-overflow: ellipsis;
 }
 
-
+.nontree span {
+	--spacing : 1.5rem;
+	--radius  : 10px;
+	padding-left: calc(2 * var(--spacing) - var(--radius) - 1px);
+	margin: 0px 0px 0px -7px;
+  }
 
 /* https://iamkate.com/code/tree-views/ */
 .tree{
 	--spacing : 1.5rem;
 	--radius  : 10px;
+	padding: 0px;
+	margin: -2px 0px 0px -12px;
   }
   
   .tree li{
 	display      : block;
 	position     : relative;
-	padding-left : calc(2 * var(--spacing) - var(--radius) - 2px);
+	padding-left : calc(2 * var(--spacing) - var(--radius) - 1px);
+	padding-top: 2px;
+	border       : solid transparent;
+	border-width : 0;
   }
   
   .tree ul{
@@ -110,7 +120,7 @@ position: absolute;
   }
   
   .tree ul li{
-	border-left : 2px solid #ddd;
+	border-left : 1px solid #aaa;
   }
   
   .tree ul li:last-child{
@@ -122,16 +132,18 @@ position: absolute;
 	display      : block;
 	position     : absolute;
 	top          : calc(var(--spacing) / -2);
-	left         : -2px;
+	left         : -1px;
 	width        : calc(var(--spacing) + 2px);
 	height       : calc(var(--spacing) + 1px);
-	border       : solid #ddd;
-	border-width : 0 0 2px 2px;
+	border       : solid #aaa;
+	border-width : 0 0 1px 1px;
   }
   
   .tree summary{
 	display : block;
 	cursor  : pointer;
+	border       : solid transparent;
+	border-width : 1px 1px 1px 1px;
   }
   
   .tree summary::marker,

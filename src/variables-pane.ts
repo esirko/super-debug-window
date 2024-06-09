@@ -42,8 +42,9 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.command) {
-				case 'getMoreInfoAboutVariable?':
+				case 'getVariableMembers':
 					{
+						vscode.debug.activeDebugSession?.customRequest('variables', { variablesReference: data.variablesReference, subvariableNotScopeRenameMe: true });
 						break;
 					}
 				default:
@@ -70,7 +71,7 @@ export class SuperVariablesProvider implements vscode.WebviewViewProvider {
 			let variables = response.body.variables;
 			variables.sort((a: { name: string }, b: { name: string }) => (a.name > b.name) ? 1 : -1);
 
-			this._view.webview.postMessage({ type: 'updateVariables', variablesReferenceId: request.arguments.variablesReference, variables: response.body.variables });
+			this._view.webview.postMessage({ type: 'updateVariables', variablesReferenceId: request.arguments.variablesReference, variables: response.body.variables, subvariableNotScopeRenameMe: request.arguments.subvariableNotScopeRenameMe});
 		} else {
 			this._pendingUpdateVariables = { request: request, response: response };
 		}
