@@ -1,7 +1,12 @@
 {
   "name": "super-debug-window",
-  "displayName": "super-debug-window",
-  "description": "Super debug window",
+  "displayName": "Super debug window",
+  "description": "Prettier call stack and variables panes for VS Code debugging",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/esirko/super-debug-window"
+  },
+  "publisher": "esirko",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.84.0"
