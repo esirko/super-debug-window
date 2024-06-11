@@ -13,6 +13,9 @@ Open this repo in VS Code, and hit F5. It will launch a new instance of VS Code 
 
 To debug the UI, cmd-shift-P, then "Open Webview Developer Tools" ([Source](https://dzhavat.github.io/2020/11/12/easy-way-to-debug-a-webview-in-a-vscode-extension.html)). My code is in `<guid> / active-frame (index.html) / file+vscode-resource.vscode-cdn.net / <path>...`
 
+To [publish](https://code.visualstudio.com/api/working-with-extensions/publishing-extension): increment version, then `vsce package && vsce publish`.
+
+My [manage publisher page](https://marketplace.visualstudio.com/manage/publishers/esirko).
 
 ## Requirements
 
